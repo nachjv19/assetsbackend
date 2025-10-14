@@ -12,7 +12,7 @@ const app = express();
 // ✅ Configurar CORS correctamente
 const allowedOrigins = [
   'http://localhost:5173',               // dev
-  'https://technova-frontend.onrender.com' // <-- tu frontend en Render
+  'https://technova-backend-tzkn.onrender.com' // <-- tu frontend en Render
 ];
 
 app.use(cors({
