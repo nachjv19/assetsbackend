@@ -9,24 +9,42 @@ export interface AuthRequest extends Request {
   user?: any;
 }
 
+/**
+ * Middleware de autenticación:
+ * - Acepta token desde header Authorization: Bearer <token>
+ * - O desde cookie httpOnly "token"
+ */
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ message: 'No token provided' });
-  const parts = auth.split(' ');
-  if (parts.length !== 2) return res.status(401).json({ message: 'Invalid token' });
-  const token = parts[1];
+  let token: string | undefined;
+
+  // 🧠 Buscar cookie si existe
+  if (req.cookies?.token) token = req.cookies.token;
+
+  // 🧠 Si no hay cookie, usar header Authorization
+  if (!token && req.headers.authorization) {
+    const parts = req.headers.authorization.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer') {
+      token = parts[1];
+    }
+  }
+
+  if (!token) return res.status(401).json({ message: 'No token provided' });
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     req.user = decoded;
     next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid token' });
+  } catch {
+    return res.status(401).json({ message: 'Invalid or expired token' });
   }
 };
 
+/**
+ * Middleware para proteger rutas de administrador
+ */
 export const isAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) return res.status(401).json({ message: 'No user' });
-  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Requires admin' });
+  if (req.user.role !== 'admin')
+    return res.status(403).json({ message: 'Requires admin role' });
   next();
 };
