@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { logger } from '../utils/logger';
+import { AuthRequest } from '../middlewares/auth.middlewares';
 
 dotenv.config();
 
@@ -95,4 +96,9 @@ export const logout = async (_req: Request, res: Response) => {
     sameSite: 'none',
   });
   res.json({ message: 'Logout successful' });
+};
+
+export const getProfile = async (req: AuthRequest, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+  res.json({ user: req.user });
 };
