@@ -68,10 +68,12 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(payload, JWT_SECRET as jwt.Secret, options);
 
     // ✅ Enviar cookie segura httpOnly + mantener compatibilidad con header
+    // cookie options: para que funcione en desarrollo con localhost usamos secure=false y sameSite=lax
+    const isProd = process.env.NODE_ENV === 'production';
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true en Render
-      sameSite: 'none', // importante para Vercel/Render
+      secure: isProd, // true en producción
+      sameSite: isProd ? 'none' : 'lax', // 'none' requiere secure, así que sólo en prod
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
@@ -90,10 +92,11 @@ export const login = async (req: Request, res: Response) => {
 
 // 🚪 Logout (elimina cookie)
 export const logout = async (_req: Request, res: Response) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.clearCookie('token', {
     httpOnly: true,
-    secure: true,
-    sameSite: 'none',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
   });
   res.json({ message: 'Logout successful' });
 };
