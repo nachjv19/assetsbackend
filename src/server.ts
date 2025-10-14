@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from 'cors';
 import { connectDB } from "./config/db";
 import authRoutes from "./routes/auth.routes";
 import productRoutes from "./routes/products.routes";
@@ -8,19 +9,16 @@ import productRoutes from "./routes/products.routes";
 dotenv.config();
 const app = express();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5500;
 
-// tu dominio de front:
-const FRONT_URL = process.env.FRONT_URL || "https://technova-frontend.onrender.com";
+// dominio del front (ajusta en .env). Por defecto para desarrollo colocamos localhost:3000
+const FRONT_URL = process.env.FRONT_URL || "https://technova-backend-tzkn.onrender.com";
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", FRONT_URL);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-  if (req.method === "OPTIONS") return res.sendStatus(204);
-  next();
-});
+// Usar middleware oficial de CORS para permitir credentials (cookies) desde el frontend
+app.use(cors({
+  origin: FRONT_URL,
+  credentials: true,
+}));
 
 app.use(express.json());
 app.use(cookieParser());
